@@ -1,6 +1,7 @@
 package com.namnoit.zcontact
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -12,6 +13,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.layout_contact_row.view.*
+import kotlin.math.exp
+import androidx.core.content.ContextCompat.startActivity
+import android.R.attr.phoneNumber
+import android.widget.Toast
+
+
+const val CONTACT_ID = "com.example.myfirstapp.id"
+const val PHONE_NUMBER = "com.example.myfirstapp.number"
+const val CONTACT_NAME = "com.example.myfirstapp.name"
+const val CONTACT_EMAIL = "com.example.myfirstapp.email"
 
 
 class ContactsAdapter(
@@ -20,15 +31,16 @@ class ContactsAdapter(
 ) : RecyclerView.Adapter<ContactsAdapter.ViewHolder>() {
     private val colorSet = arrayListOf(
         Color.parseColor("#ffcdd2"),
-        Color.parseColor("#f8bbd0"),
-        Color.parseColor("#e1bee7"),
-        Color.parseColor("#b39ddb"),
-        Color.parseColor("#9fa8da"),
         Color.parseColor("#90caf9"),
-        Color.parseColor("#80deea"),
         Color.parseColor("#a5d6a7"),
+        Color.parseColor("#f8bbd0"),
+        Color.parseColor("#b39ddb"),
+        Color.parseColor("#80deea"),
+        Color.parseColor("#e1bee7"),
+        Color.parseColor("#9fa8da"),
         Color.parseColor("#ffab91")
     )
+    private var expandPosition = RecyclerView.NO_POSITION
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -39,6 +51,7 @@ class ContactsAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.textName.text = contacts[position].name
+        holder.itemView.phone_expand.text = contacts[position].phone
         if (contacts[position].avatarURI != null)
             holder.itemView.avatar.setImageURI(Uri.parse(contacts[position].avatarURI))
         else
@@ -49,33 +62,53 @@ class ContactsAdapter(
                     pickColor(position)
                 )
             )
+        if (position == expandPosition)
+            holder.itemView.item_expand.visibility = View.VISIBLE
+        else
+            holder.itemView.item_expand.visibility = View.GONE
 
         holder.itemView.setOnClickListener {
-            holder.itemView.phone_expand.text = contacts[position].phone
-            holder.itemView.item_expand.visibility =
-                if (holder.itemView.item_expand.visibility == View.GONE) View.VISIBLE else View.GONE
+            Toast.makeText(context,contacts[position].email,Toast.LENGTH_SHORT).show()
+            if (position == expandPosition) {
+                notifyItemChanged(position)
+                expandPosition = RecyclerView.NO_POSITION
+            }
+            else {
+                notifyItemChanged(expandPosition)
+                expandPosition = position
+                notifyItemChanged(expandPosition)
+            }
         }
+        holder.itemView.call_expand.setOnClickListener {
+            val callUri = Uri.parse("tel:" + contacts[position].phone)
+            val intent = Intent(Intent.ACTION_DIAL, callUri)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(intent)
+        }
+        holder.itemView.message_expand.setOnClickListener {
+            val intent = Intent(Intent.ACTION_SENDTO)
+            intent.data = Uri.parse("smsto:" + Uri.encode(contacts[position].phone))
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(intent)
+        }
+        holder.itemView.detail_expand.setOnClickListener {
+            val intent = Intent(context,DetailActivity::class.java).apply {
+                putExtra(CONTACT_ID,contacts[position].contactID)
+                putExtra(CONTACT_NAME,contacts[position].name)
+                putExtra(PHONE_NUMBER,contacts[position].phone)
+                putExtra(CONTACT_EMAIL,contacts[position].email)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+        }
+
+
     }
 
     override fun getItemCount(): Int {
         return contacts.size
     }
 
-    private fun createImage(width: Int, height: Int, color: Int, name: String): Bitmap {
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val paint2 = Paint()
-        paint2.color = color
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint2)
-        val paint = Paint()
-        paint.color = Color.WHITE
-        paint.textSize = 72f
-        paint.textScaleX = 1f
-        canvas.drawText(name, 75f - 25f, 75f + 20f, paint)
-        return bitmap
-
-
-    }
 
     private fun textAsBitmap(text: String, textSize: Float, backgroundColor: Int): Bitmap {
         val paint = Paint(ANTI_ALIAS_FLAG)

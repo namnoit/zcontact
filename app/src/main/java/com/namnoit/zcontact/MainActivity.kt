@@ -77,7 +77,9 @@ class MainActivity : AppCompatActivity() {
             arrayOf(
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
                 ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI,
-                ContactsContract.CommonDataKinds.Phone.NUMBER
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Email.DATA,
+                ContactsContract.CommonDataKinds.Photo.CONTACT_ID
             ),
             null,
             null,
@@ -90,7 +92,9 @@ class MainActivity : AppCompatActivity() {
                 val photoURI =
                     cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI))
                 val number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-                contacts.add(ContactModel(photoURI, name, number))
+                val email = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA))
+                val id = cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Photo.CONTACT_ID))
+                contacts.add(ContactModel(photoURI, name, number, email, id.toString()))
             } while (cursor.moveToNext())
         }
         cursor?.close()
