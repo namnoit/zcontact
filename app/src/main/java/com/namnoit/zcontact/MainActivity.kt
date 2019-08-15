@@ -11,15 +11,18 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.provider.ContactsContract.CommonDataKinds.Email
+
+const val PERMISSIONS_REQUEST_READ_CONTACTS = 100
 
 class MainActivity : AppCompatActivity() {
-    private val PERMISSIONS_REQUEST_READ_CONTACTS = 100
     private lateinit var contacts: ArrayList<ContactModel>
     lateinit var adapter: ContactsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         contacts = ArrayList()
         if (hasPermission()) {
             contacts = readContacts()
@@ -78,8 +81,7 @@ class MainActivity : AppCompatActivity() {
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
                 ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI,
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
-                ContactsContract.CommonDataKinds.Email.DATA,
-                ContactsContract.CommonDataKinds.Photo.CONTACT_ID
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID
             ),
             null,
             null,
@@ -92,8 +94,18 @@ class MainActivity : AppCompatActivity() {
                 val photoURI =
                     cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI))
                 val number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-                val email = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA))
-                val id = cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Photo.CONTACT_ID))
+                val id = cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID))
+                val emails =
+                    contentResolver.query(Email.CONTENT_URI,
+                        arrayOf(Email.DATA),
+                        Email.CONTACT_ID + " = " + id,
+                        null,
+                        null)
+                var email = ""
+                if (emails != null && emails.moveToNext()) {
+                    email = emails.getString(emails.getColumnIndex(Email.DATA))
+                }
+                emails?.close()
                 contacts.add(ContactModel(photoURI, name, number, email, id.toString()))
             } while (cursor.moveToNext())
         }

@@ -13,10 +13,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.layout_contact_row.view.*
-import kotlin.math.exp
-import androidx.core.content.ContextCompat.startActivity
-import android.R.attr.phoneNumber
-import android.widget.Toast
 
 
 const val CONTACT_ID = "com.example.myfirstapp.id"
@@ -68,7 +64,7 @@ class ContactsAdapter(
             holder.itemView.item_expand.visibility = View.GONE
 
         holder.itemView.setOnClickListener {
-            Toast.makeText(context,contacts[position].email,Toast.LENGTH_SHORT).show()
+//            Toast.makeText(context,contacts[position].email,Toast.LENGTH_SHORT).show()
             if (position == expandPosition) {
                 notifyItemChanged(position)
                 expandPosition = RecyclerView.NO_POSITION
@@ -101,8 +97,6 @@ class ContactsAdapter(
             }
             context.startActivity(intent)
         }
-
-
     }
 
     override fun getItemCount(): Int {
